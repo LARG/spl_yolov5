@@ -286,6 +286,7 @@ def export_saved_model(model,
                        iou_thres=0.45,
                        conf_thres=0.25,
                        keras=False,
+                       yuyv=False,
                        prefix=colorstr('TensorFlow SavedModel:')):
     # YOLOv5 TensorFlow SavedModel export
     try:
@@ -298,11 +299,15 @@ def export_saved_model(model,
         f = str(file).replace('.pt', '_saved_model')
         batch_size, ch, *imgsz = list(im.shape)  # BCHW
 
-        tf_model = TFModel(cfg=model.yaml, model=model, nc=model.nc, imgsz=imgsz)
+        tf_model = TFModel(cfg=model.yaml, model=model, nc=model.nc, imgsz=imgsz, yuyv=yuyv)
+        if yuyv:
+            ch = 4
         im = tf.zeros((batch_size, *imgsz, ch))  # BHWC order for TensorFlow
         _ = tf_model.predict(im, tf_nms, agnostic_nms, topk_per_class, topk_all, iou_thres, conf_thres)
         inputs = tf.keras.Input(shape=(*imgsz, ch), batch_size=None if dynamic else batch_size)
         outputs = tf_model.predict(inputs, tf_nms, agnostic_nms, topk_per_class, topk_all, iou_thres, conf_thres)
+        print(f"INPUT SHAPE: {inputs.shape}")
+        print(f"OUTPUT SHAPE: {outputs.shape}")
         keras_model = tf.keras.Model(inputs=inputs, outputs=outputs)
         keras_model.trainable = False
         keras_model.summary()
@@ -472,6 +477,7 @@ def run(
         topk_all=100,  # TF.js NMS: topk for all classes to keep
         iou_thres=0.45,  # TF.js NMS: IoU threshold
         conf_thres=0.25,  # TF.js NMS: confidence threshold
+        yuyv=False,  # attach YUYV layer before training
 ):
     t = time.time()
     include = [x.lower() for x in include]  # to lowercase
@@ -542,7 +548,8 @@ def run(
                                          topk_all=topk_all,
                                          iou_thres=iou_thres,
                                          conf_thres=conf_thres,
-                                         keras=keras)
+                                         keras=keras,
+                                         yuyv=yuyv)
         if pb or tfjs:  # pb prerequisite to tfjs
             f[6] = export_pb(model, file)
         if tflite or edgetpu:
@@ -572,6 +579,7 @@ def parse_opt():
     parser.add_argument('--batch-size', type=int, default=1, help='batch size')
     parser.add_argument('--device', default='cpu', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     parser.add_argument('--half', action='store_true', help='FP16 half-precision export')
+    parser.add_argument('--yuyv', action='store_true', help='attach YUYV2RGB layer first (tflite only)')
     parser.add_argument('--inplace', action='store_true', help='set YOLOv5 Detect() inplace=True')
     parser.add_argument('--train', action='store_true', help='model.train() mode')
     parser.add_argument('--keras', action='store_true', help='TF: use Keras')
@@ -591,7 +599,7 @@ def parse_opt():
     parser.add_argument('--include',
                         nargs='+',
                         default=['torchscript', 'onnx'],
-                        help='torchscript, onnx, openvino, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs')
+                        help='torchscript, onnx, openvino, engine, coreml, saved_model, pb, tflite,edgetpu, tfjs')
     opt = parser.parse_args()
     print_args(vars(opt))
     return opt

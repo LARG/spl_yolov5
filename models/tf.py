@@ -35,6 +35,48 @@ from utils.activations import SiLU
 from utils.general import LOGGER, make_divisible, print_args
 
 
+class AddTensor(keras.layers.Layer):
+    def __init__(self, x):
+        super(AddTensor, self).__init__()
+        self.x = x
+    
+    def call(self, inputs):
+        return inputs + self.x
+
+
+class YUYV2RGB(keras.layers.Layer):
+    def __init__(self):
+        super(YUYV2RGB, self).__init__()
+        # in_channels x out_channels x 1 x 1
+        bias_pre = tf.constant([-16, -128, -16, -128], tf.float32)
+        self.add_pre_bias = AddTensor(tf.reshape(bias_pre, (1, 1, 1, 4)))
+        w = np.array(
+            [
+                [1.164,    0,   0,  1.596], 
+                [1.164, -0.391,   0, -0.813],
+                [1.164,  2.018,   0,  0],
+                [  0,    0, 1.164,  1.596],
+                [  0, -0.391, 1.164, -0.813],
+                [  0,  2.018, 1.164,  0] 
+            ]  
+        ) / 255.0
+        w = np.reshape(w.transpose(), [1, 1, 4, 6])
+        b = np.array([0, 128, 0, 0, 128, 0]) / 255.0**2 * 0.0
+        self.conv = keras.layers.Conv2D(
+            filters=6,
+            kernel_size=1,
+            kernel_initializer=keras.initializers.Constant(w),
+            bias_initializer=keras.initializers.Constant(b)
+        )
+
+    def call(self, inputs):
+        x = self.add_pre_bias(inputs)
+        x = self.conv(x)
+        x = tf.clip_by_value(x, 0, 1.0)
+        x = tf.reshape(x, [-1, x.shape[1], 2 * x.shape[2], 3])
+        return x
+
+
 class TFBN(keras.layers.Layer):
     # TensorFlow BatchNormalization wrapper
     def __init__(self, w=None):
@@ -402,7 +444,7 @@ def parse_model(d, ch, model, imgsz):  # model_dict, input_channels(3)
 
 class TFModel:
     # TF YOLOv5 model
-    def __init__(self, cfg='yolov5s.yaml', ch=3, nc=None, model=None, imgsz=(640, 640)):  # model, channels, classes
+    def __init__(self, cfg='yolov5s.yaml', ch=3, nc=None, model=None, imgsz=(640, 640), yuyv=False):  # model, channels, classes
         super().__init__()
         if isinstance(cfg, dict):
             self.yaml = cfg  # model dict
@@ -411,6 +453,9 @@ class TFModel:
             self.yaml_file = Path(cfg).name
             with open(cfg) as f:
                 self.yaml = yaml.load(f, Loader=yaml.FullLoader)  # model dict
+
+        if yuyv:
+            self.yuyv2rgb = YUYV2RGB()
 
         # Define model
         if nc and nc != self.yaml['nc']:
@@ -428,6 +473,10 @@ class TFModel:
                 conf_thres=0.25):
         y = []  # outputs
         x = inputs
+
+        if hasattr(self, 'yuyv2rgb'):
+            x = self.yuyv2rgb(x)
+
         for m in self.model.layers:
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
@@ -533,6 +582,7 @@ def run(
         imgsz=(640, 640),  # inference size h,w
         batch_size=1,  # batch size
         dynamic=False,  # dynamic batch size
+        yuyv=False,  # attach yuyv layer
 ):
     # PyTorch model
     im = torch.zeros((batch_size, 3, *imgsz))  # BCHW image
@@ -542,7 +592,7 @@ def run(
 
     # TensorFlow model
     im = tf.zeros((batch_size, *imgsz, 3))  # BHWC image
-    tf_model = TFModel(cfg=model.yaml, model=model, nc=model.nc, imgsz=imgsz)
+    tf_model = TFModel(cfg=model.yaml, model=model, nc=model.nc, imgsz=imgsz, yuyv=yuyv)
     _ = tf_model.predict(im)  # inference
 
     # Keras model

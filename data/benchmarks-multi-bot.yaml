@@ -1,0 +1,8 @@
+nc: 2
+train: [../spldata/datasets/spl-xyolo/images/train, ../spldata/datasets/natural-light/images/train, ../spldata/datasets/naodevils/images/train]
+# train: [../spldata/datasets/natural-light/images/train, ../spldata/datasets/naodevils/images/train]
+val: [../spldata/datasets/spl-xyolo/images/val_spl_bot]
+# names: ["ball", "cross", "robot", "center"]
+# names: ["ball", "cross", "robot"]
+names: ["ball", "cross"]
+# names: ["ball"]

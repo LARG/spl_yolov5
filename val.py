@@ -122,6 +122,7 @@ def run(
         plots=True,
         callbacks=Callbacks(),
         compute_loss=None,
+        yuyv=False,
 ):
     # Initialize/load model and set device
     training = model is not None
@@ -193,14 +194,23 @@ def run(
     for batch_i, (im, targets, paths, shapes) in enumerate(pbar):
         callbacks.run('on_val_batch_start')
         t1 = time_sync()
+
+        #
+        if yuyv:
+            im = [rgb2yuyv(im[i].numpy().transpose(1, 2, 0)) for i in range(im.shape[0])]
+            im = torch.from_numpy(np.stack(im).transpose(0, 3, 1, 2))
+
         if cuda:
             im = im.to(device, non_blocking=True)
             targets = targets.to(device)
+        
+
         im = im.half() if half else im.float()  # uint8 to fp16/32
         im /= 255  # 0 - 255 to 0.0 - 1.0
         nb, _, height, width = im.shape  # batch size, channels, height, width
         t2 = time_sync()
         dt[0] += t2 - t1
+
 
         # Inference
         out, train_out = model(im) if training else model(im, augment=augment, val=True)  # inference, loss outputs
