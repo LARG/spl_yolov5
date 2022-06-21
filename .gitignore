@@ -63,6 +63,10 @@ VOC/
 darknet53.conv.74
 yolov3-tiny.conv.15
 
+# Include models in tflite-trained-models
+!tflite-trained-models/*
+
+
 # GitHub Python GitIgnore ----------------------------------------------------------------------------------------------
 # Byte-compiled / optimized / DLL files
 __pycache__/
