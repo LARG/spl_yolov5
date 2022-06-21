@@ -50,29 +50,29 @@ class YUYV2RGB(keras.layers.Layer):
         # in_channels x out_channels x 1 x 1
         bias_pre = tf.constant([-16, -128, -16, -128], tf.float32)
         self.add_pre_bias = AddTensor(tf.reshape(bias_pre, (1, 1, 1, 4)))
-        w = np.array(
+        W = np.array(
             [
-                [1.164,    0,   0,  1.596], 
-                [1.164, -0.391,   0, -0.813],
-                [1.164,  2.018,   0,  0],
-                [  0,    0, 1.164,  1.596],
-                [  0, -0.391, 1.164, -0.813],
-                [  0,  2.018, 1.164,  0] 
+                [298,    0,   0,  409], 
+                [298, -100,   0, -209],
+                [298,  516,   0,  128],
+                [  0,    0, 298,  409],
+                [  0, -100, 298, -209],
+                [  0,  516, 298,  128] 
             ]  
-        ) / 255.0
-        w = np.reshape(w.transpose(), [1, 1, 4, 6])
+        )
+        W = W.transpose() / 255.0 ** 2
         b = np.array([0, 128, 0, 0, 128, 0]) / 255.0**2 * 0.0
         self.conv = keras.layers.Conv2D(
             filters=6,
             kernel_size=1,
-            kernel_initializer=keras.initializers.Constant(w),
+            kernel_initializer=keras.initializers.Constant(W),
             bias_initializer=keras.initializers.Constant(b)
         )
 
     def call(self, inputs):
         x = self.add_pre_bias(inputs)
         x = self.conv(x)
-        x = tf.clip_by_value(x, 0, 1.0)
+        # x = tf.clip_by_value(x, 0, 1.0)
         x = tf.reshape(x, [-1, x.shape[1], 2 * x.shape[2], 3])
         return x
 
@@ -586,6 +586,10 @@ def run(
 ):
     # PyTorch model
     im = torch.zeros((batch_size, 3, *imgsz))  # BCHW image
+    if yuyv:
+        im = torch.zeros((batch_size, 4, *imgsz))  # BCHW image
+        im = im[:, :, :(im.shape[2] // 2),  :]
+        print("INPUT SHAPE:", im.shape)
     model = attempt_load(weights, device=torch.device('cpu'), inplace=True, fuse=False)
     _ = model(im)  # inference
     model.info()

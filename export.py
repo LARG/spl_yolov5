@@ -51,6 +51,7 @@ import sys
 import time
 import warnings
 from pathlib import Path
+from copy import deepcopy
 
 import pandas as pd
 import torch
@@ -300,11 +301,17 @@ def export_saved_model(model,
         batch_size, ch, *imgsz = list(im.shape)  # BCHW
 
         tf_model = TFModel(cfg=model.yaml, model=model, nc=model.nc, imgsz=imgsz, yuyv=yuyv)
+        
+        imgsz_ = deepcopy(imgsz)
+    
         if yuyv:
+            imgsz_[1] = imgsz[1] // 2
             ch = 4
-        im = tf.zeros((batch_size, *imgsz, ch))  # BHWC order for TensorFlow
+
+        im = tf.zeros((batch_size, *imgsz_, ch))  # BHWC order for TensorFlow
+
         _ = tf_model.predict(im, tf_nms, agnostic_nms, topk_per_class, topk_all, iou_thres, conf_thres)
-        inputs = tf.keras.Input(shape=(*imgsz, ch), batch_size=None if dynamic else batch_size)
+        inputs = tf.keras.Input(shape=(*imgsz_, ch), batch_size=None if dynamic else batch_size)
         outputs = tf_model.predict(inputs, tf_nms, agnostic_nms, topk_per_class, topk_all, iou_thres, conf_thres)
         print(f"INPUT SHAPE: {inputs.shape}")
         print(f"OUTPUT SHAPE: {outputs.shape}")
