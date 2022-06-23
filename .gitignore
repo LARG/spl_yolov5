@@ -64,7 +64,7 @@ darknet53.conv.74
 yolov3-tiny.conv.15
 
 # Include models in tflite-trained-models
-!tflite-trained-models/*
+!tflite-trained-models/*.tflite
 
 
 # GitHub Python GitIgnore ----------------------------------------------------------------------------------------------

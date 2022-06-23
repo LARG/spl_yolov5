@@ -34,6 +34,15 @@ from models.yolo import Detect
 from utils.activations import SiLU
 from utils.general import LOGGER, make_divisible, print_args
 
+WCONST = np.array(
+    [
+        [298,    0,   0,  409], 
+        [298, -100,   0, -209],
+        [298,  516,   0,  128],
+    ]  
+) / 255**2
+BCONST0 = [-16, -128, -16, -128]
+BCONST1 = 0.2 + np.array([0, 128, 0]) / 255**2
 
 class AddTensor(keras.layers.Layer):
     def __init__(self, x):
@@ -60,8 +69,8 @@ class YUYV2RGB(keras.layers.Layer):
                 [  0,  516, 298,  128] 
             ]  
         )
-        W = W.transpose() / 255.0 ** 2
-        b = np.array([0, 128, 0, 0, 128, 0]) / 255.0**2 * 0.0
+        W = 0.95 * np.reshape(W.transpose(), [1, 1, 4, 6]) / 255.0**2
+        b = 0.05 + np.array([0, 128, 0, 0, 128, 0]) / 255.0 ** 2
         self.conv = keras.layers.Conv2D(
             filters=6,
             kernel_size=1,
@@ -409,7 +418,7 @@ def parse_model(d, ch, model, imgsz):  # model_dict, input_channels(3)
                 nn.Conv2d, Conv, DWConv, DWConvTranspose2d, Bottleneck, SPP, SPPF, MixConv2d, Focus, CrossConv,
                 BottleneckCSP, C3, C3x]:
             c1, c2 = ch[f], args[0]
-            c2 = make_divisible(c2 * gw, 8) if c2 != no else c2
+            c2 = make_divisible(c2 * gw, 2) if c2 != no else c2
 
             args = [c1, c2, *args[1:]]
             if m in [BottleneckCSP, C3, C3x]:

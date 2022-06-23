@@ -1,8 +1,4 @@
 nc: 2
-train: [../spldata/datasets/spl-xyolo/images/train, ../spldata/datasets/natural-light/images/train, ../spldata/datasets/naodevils/images/train]
-# train: [../spldata/datasets/natural-light/images/train, ../spldata/datasets/naodevils/images/train]
-val: [../spldata/datasets/spl-xyolo/images/val_spl_bot]
-# names: ["ball", "cross", "robot", "center"]
-# names: ["ball", "cross", "robot"]
+train: [../spldata/datasets/spl-xyolo_bottom/images/train, ../spldata/datasets/natural-light_bottom/images/train, ../spldata/datasets/naodevils_bottom/images/train]
+val: [../spldata/datasets/spl-xyolo_bottom/images/val, ../spldata/datasets/natural-light_bottom/images/val, ../spldata/datasets/naodevils_bottom/images/val]
 names: ["ball", "cross"]
-# names: ["ball"]
