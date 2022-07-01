@@ -1,4 +1,16 @@
 nc: 2
-train: [../spldata/datasets/spl-xyolo_bottom/images/train, ../spldata/datasets/natural-light_bottom/images/train, ../spldata/datasets/naodevils_bottom/images/train]
-val: [../spldata/datasets/spl-xyolo_bottom/images/val, ../spldata/datasets/natural-light_bottom/images/val, ../spldata/datasets/naodevils_bottom/images/val]
+train:
+  - ../spldata/datasets/spl-xyolo_bottom/images/train
+  - ../spldata/datasets/natural-light_bottom/images/train
+  - ../spldata/datasets/naodevils_bottom/images/train
+  - ../spldata/datasets/logs_220603_rgb_bottom/images/train
+  - ../spldata/datasets/logs_220623_rgb_bottom/images/train
+  - ../spldata/datasets/naodevils_upper_2000_3000_bottom/images/train
+val:
+  - ../spldata/datasets/spl-xyolo_bottom/images/val
+  - ../spldata/datasets/natural-light_bottom/images/val
+  - ../spldata/datasets/naodevils_bottom/images/val
+  - ../spldata/datasets/logs_220603_rgb_bottom/images/val
+  - ../spldata/datasets/logs_220623_rgb_bottom/images/val
+  - ../spldata/datasets/naodevils_upper_2000_3000_bottom/images/val
 names: ["ball", "cross"]
