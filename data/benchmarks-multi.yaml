@@ -1,16 +1,34 @@
 nc: 2
 train:
-  - ../spldata/datasets/spl-xyolo/images/train
+  - ../spldata/datasets/larg_spl19_rgb/images/train
+  # - ../spldata/datasets/xyolo/images/train
   - ../spldata/datasets/natural-light/images/train
-  - ../spldata/datasets/naodevils/images/train
-  - ../spldata/datasets/naodevils_upper_2000_3000/images/train
   - ../spldata/datasets/logs_220603_rgb/images/train
   - ../spldata/datasets/logs_220623_rgb/images/train
+  # - ../spldata/datasets/naodevils/images/train
+  # - ../spldata/datasets/naodevils_upper_2000_3000/images/train
+  # - ../spldata/datasets/naodevils_upper_3000_4000/images/train
+  # - ../spldata/datasets/naodevils_upper_6000_7000/images/train
+  # - ../spldata/datasets/naodevils_upper_8000_9000/images/train
+  - ../spldata/datasets/vision_22_07_01-01_57_38_rgb/images/train
+  - ../spldata/datasets/vision_22_07_11_pre_padthai_rgb/images/train
+  - ../spldata/datasets/vision_22_07_14_rgb/images/train
+  - ../spldata/datasets/vision_padthailand_correct_field/images/train
+  - ../spldata/datasets/thai_robots_false_balls/images/train
 val:
-  - ../spldata/datasets/spl-xyolo/images/val
+  - ../spldata/datasets/larg_spl19_rgb/images/val
+  # - ../spldata/datasets/xyolo/images/val
   - ../spldata/datasets/natural-light/images/val
-  - ../spldata/datasets/naodevils/images/val
-  - ../spldata/datasets/naodevils_upper_2000_3000/images/val
   - ../spldata/datasets/logs_220603_rgb/images/val
   - ../spldata/datasets/logs_220623_rgb/images/val
+  # - ../spldata/datasets/naodevils/images/val
+  # - ../spldata/datasets/naodevils_upper_2000_3000/images/val
+  # - ../spldata/datasets/naodevils_upper_3000_4000/images/val
+  # - ../spldata/datasets/naodevils_upper_6000_7000/images/val
+  # - ../spldata/datasets/naodevils_upper_8000_9000/images/val
+  - ../spldata/datasets/vision_22_07_01-01_57_38_rgb/images/val
+  - ../spldata/datasets/vision_22_07_11_pre_padthai_rgb/images/val
+  - ../spldata/datasets/vision_22_07_14_rgb/images/val
+  - ../spldata/datasets/vision_padthailand_correct_field/images/val
+  - ../spldata/datasets/thai_robots_false_balls/images/val
 names: ["ball", "cross"]

@@ -3,31 +3,30 @@
 # Parameters
 nc: 2  # number of classes
 depth_multiple: 1.0  # model depth multiple
-width_multiple: 1.0  # layer channel multiple 
+width_multiple: 1.0  # layer channel multiple
 anchors:
-  # - [12,12, 24, 24]  # P4/16  8x6
-  - [24, 24, 48, 48]  # P4/16  8x6
-  # - [36,36, 48,48]  # P5/32  4x3
+  - [5,5,20,20]  # P4/16
+  - [30,30,40,40]  # P5/32
 
 # YOLOv5 v6.0 backbone
 backbone:
   # [from, number, module, args]
-  [
-   [-1, 1, DWConv, [12, 3, 2]],  # 
-   [-1, 1, Conv, [12, 1, 1]],  # 
-   [-1, 1, DWConv, [24, 3, 2]],
-   [-1, 1, Conv, [16, 1, 1]], #
-   [-1, 1, DWConv, [32, 3, 2]],
-   [-1, 1, Conv, [24, 1, 1]], #
-   [-1, 1, DWConv, [48, 3, 2]],
-   [-1, 1, SPPF, [48, 3]],  
+  [[-1, 1, Conv, [8, 3, 2]],  # 0-P1/2
+   [-1, 1, Conv, [12, 3, 2]],  # 1-P2/4
+   [-1, 1, C3, [12]],
+   [-1, 1, Conv, [16, 3, 2]],  # 3-P3/8
+   [-1, 1, C3, [16]],
+   [-1, 1, Conv, [24, 3, 2]],  # 5-P4/16
+   [-1, 1, C3, [24]],
+   [-1, 1, Conv, [32, 3, 2]],  # 7-P5/32
+   [-1, 1, C3, [32]],
   ]
 
 # YOLOv5 v6.0 head
 head:
-  [
-    [[-1, 6], 1, Concat, [1]],
-    [-1, 1, Conv, [16, 1, 1]],
-    [-1, 1, Conv, [32, 3, 1]],
-    [[10], 1, Detect, [nc, anchors]],  
+  [[-1, 1, Conv, [32, 3, 1]],
+   [-1, 1, C3, [32, False]],  # 
+   [-5, 1, Conv, [24, 3, 1]],
+   [-1, 1, C3, [24, False]],  # 
+   [[-1, -3], 1, Detect, [nc, anchors]],  # Detect(P4, P5)
   ]

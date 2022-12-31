@@ -14,6 +14,7 @@ import argparse
 import sys
 from copy import deepcopy
 from pathlib import Path
+from matplotlib import scale
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]  # YOLOv5 root directory
@@ -375,8 +376,13 @@ class TFUpsample(keras.layers.Layer):
     # TF version of torch.nn.Upsample()
     def __init__(self, size, scale_factor, mode, w=None):  # warning: all arguments needed including 'w'
         super().__init__()
-        assert scale_factor == 2, "scale_factor must be 2"
-        self.upsample = lambda x: tf.image.resize(x, (x.shape[1] * 2, x.shape[2] * 2), method=mode)
+        if isinstance(scale_factor, int):
+            sf = [scale, scale_factor]
+        else:
+            assert len(scale_factor) == 2
+            sf = scale_factor
+        # assert scale_factor == 2, "scale_factor must be 2"
+        self.upsample = lambda x: tf.image.resize(x, (x.shape[1] * sf[0], x.shape[2] * sf[1]), method=mode)
         # self.upsample = keras.layers.UpSampling2D(size=scale_factor, interpolation=mode)
         # with default arguments: align_corners=False, half_pixel_centers=False
         # self.upsample = lambda x: tf.raw_ops.ResizeNearestNeighbor(images=x,
@@ -397,11 +403,35 @@ class TFConcat(keras.layers.Layer):
         return tf.concat(inputs, self.d)
 
 
-def parse_model(d, ch, model, imgsz):  # model_dict, input_channels(3)
+class TFMaxPool2d(keras.layers.Layer):
+    def __init__(self, kernel_size, strides, padding, w=None):
+        super(TFMaxPool2d, self).__init__()
+        padding = 'valid' if padding == 0 else 'same'
+        self.m = keras.layers.MaxPool2D(
+            pool_size=kernel_size,
+            strides=strides,
+            padding=padding
+        ) 
+
+    def call(self, inputs):
+        return self.m(inputs)
+
+
+def parse_model(d, ch, model, imgsz, remove_color_conversion=True):  # model_dict, input_channels(3)
     LOGGER.info(f"\n{'':>3}{'from':>18}{'n':>3}{'params':>10}  {'module':<40}{'arguments':<30}")
     anchors, nc, gd, gw = d['anchors'], d['nc'], d['depth_multiple'], d['width_multiple']
     na = (len(anchors[0]) // 2) if isinstance(anchors, list) else anchors  # number of anchors
     no = na * (nc + 5)  # number of outputs = anchors * (classes + 5)
+
+    yuyv = d.get('yuyv', False)
+    yuv = d.get('yuv', False)
+    if yuyv:
+        ch[0] += 1
+        i_offset = 1
+    elif yuv:
+        i_offset = 1
+    else:
+        i_offset = 0
 
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
     for i, (f, n, m, args) in enumerate(d['backbone'] + d['head']):  # from, number, module, args
@@ -426,6 +456,8 @@ def parse_model(d, ch, model, imgsz):  # model_dict, input_channels(3)
                 n = 1
         elif m is nn.BatchNorm2d:
             args = [ch[f]]
+        elif m is nn.Upsample:
+            args[1] = tuple(args[1])
         elif m is Concat:
             c2 = sum(ch[-1 if x == -1 else x + 1] for x in f)
         elif m is Detect:
@@ -438,7 +470,7 @@ def parse_model(d, ch, model, imgsz):  # model_dict, input_channels(3)
 
         tf_m = eval('TF' + m_str.replace('nn.', ''))
         m_ = keras.Sequential([tf_m(*args, w=model.model[i][j]) for j in range(n)]) if n > 1 \
-            else tf_m(*args, w=model.model[i])  # module
+            else tf_m(*args, w=model.model[i + i_offset])  # module
 
         torch_m_ = nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
         t = str(m)[8:-2].replace('__main__.', '')  # module type
@@ -453,7 +485,7 @@ def parse_model(d, ch, model, imgsz):  # model_dict, input_channels(3)
 
 class TFModel:
     # TF YOLOv5 model
-    def __init__(self, cfg='yolov5s.yaml', ch=3, nc=None, model=None, imgsz=(640, 640), yuyv=False):  # model, channels, classes
+    def __init__(self, cfg='yolov5s.yaml', ch=3, nc=None, model=None, imgsz=(640, 640), yuv=False, yuyv=False):  # model, channels, classes
         super().__init__()
         if isinstance(cfg, dict):
             self.yaml = cfg  # model dict
@@ -463,14 +495,15 @@ class TFModel:
             with open(cfg) as f:
                 self.yaml = yaml.load(f, Loader=yaml.FullLoader)  # model dict
 
-        if yuyv:
-            self.yuyv2rgb = YUYV2RGB()
+        # if yuyv:
+        #     self.yuyv2rgb = YUYV2RGB()
 
         # Define model
         if nc and nc != self.yaml['nc']:
             LOGGER.info(f"Overriding {cfg} nc={self.yaml['nc']} with nc={nc}")
             self.yaml['nc'] = nc  # override yaml value
-        self.model, self.savelist = parse_model(deepcopy(self.yaml), ch=[ch], model=model, imgsz=imgsz)
+
+        self.model, self.savelist = parse_model(deepcopy(self.yaml), ch=[ch], model=model, imgsz=imgsz, remove_color_conversion=True)
 
     def predict(self,
                 inputs,

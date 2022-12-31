@@ -27,5 +27,5 @@ if __name__ == "__main__":
             if subs is not None:
                 newl = str(subs) + " " + " ".join(l[1:])
                 new_labs += newl.replace("\n", "").strip() + "\n"
-        with open(os.path.join(args.o, f).replace("\n", ""), "w") as io:
+        with open(os.path.join(args.o, f).replace("\n", "").strip(), "w") as io:
             io.write(new_labs)

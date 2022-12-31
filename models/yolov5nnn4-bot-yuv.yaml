@@ -6,21 +6,25 @@ depth_multiple: 1.0  # model depth multiple
 width_multiple: 1.0  # layer channel multiple
 
 anchors:
-  - [9,12, 26,48, 36,48]  # P5/32
+  - [9,12, 36,48]  # P5/32
 
 # yuyv: true
-yuv: false
+yuv: true
 
 backbone:
   # [from, number, module, args]
   [
-   [-1, 1, Conv, [8, 3, 1]], # [filters, kernel, stride, padding, groups]
+   [-1, 1, DWConv, [12, 3, 1]], # [filters, kernel, stride, padding, groups]
+   [-1, 1, Conv, [12, 1, 1]], # [filters, kernel, stride, padding, groups]
    [-1, 1, nn.MaxPool2d, [2, 2, 0]],  #  64 x 48
-   [-1, 1, Conv, [16, 3, 1]], 
+   [-1, 1, DWConv, [16, 3, 1]], 
+   [-1, 1, Conv, [16, 1, 1]], 
    [-1, 1, nn.MaxPool2d, [2, 2, 0]],  #  32 x 24
-   [-1, 1, Conv, [24, 3, 1]], 
+   [-1, 1, DWConv, [24, 3, 1]], 
+   [-1, 1, Conv, [24, 1, 1]], 
    [-1, 1, nn.MaxPool2d, [2, 2, 0]],  #  16 x 12  
-   [-1, 1, Conv, [32, 3, 1]], #  6.cat
+   [-1, 1, DWConv, [32, 3, 1]], #  6.cat
+   [-1, 1, Conv, [32, 1, 1]], #  6.cat
    [-1, 1, nn.MaxPool2d, [2, 2, 0]],  #  8 x 6
   ]
 

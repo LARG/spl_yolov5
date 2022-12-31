@@ -1,16 +1,35 @@
 nc: 2
 train:
-  - ../spldata/datasets/spl-xyolo_bottom/images/train
-  - ../spldata/datasets/natural-light_bottom/images/train
-  - ../spldata/datasets/naodevils_bottom/images/train
-  - ../spldata/datasets/logs_220603_rgb_bottom/images/train
-  - ../spldata/datasets/logs_220623_rgb_bottom/images/train
-  - ../spldata/datasets/naodevils_upper_2000_3000_bottom/images/train
+  - ../spldata/datasets/larg_spl19_rgb_bottomalt/images/train
+  # - ../spldata/datasets/xyolo_bottomalt/images/train
+  - ../spldata/datasets/natural-light_bottomalt/images/train
+  - ../spldata/datasets/logs_220603_rgb_bottomalt/images/train
+  - ../spldata/datasets/logs_220623_rgb_bottomalt/images/train
+  - ../spldata/datasets/naodevils_bottomalt/images/train
+  # - ../spldata/datasets/naodevils_upper_2000_3000_bottomalt/images/train
+  # - ../spldata/datasets/naodevils_upper_3000_4000_bottomalt/images/train
+  # - ../spldata/datasets/naodevils_upper_6000_7000_bottomalt/images/train
+  # - ../spldata/datasets/naodevils_upper_8000_9000_bottomalt/images/train
+  - ../spldata/datasets/vision_22_07_01-01_57_38_rgb_bottomalt/images/train
+  - ../spldata/datasets/vision_22_07_11_pre_padthai_rgb_bottomalt/images/train
+  - ../spldata/datasets/vision_22_07_14_rgb_bottomalt/images/train
+  - ../spldata/datasets/vision_padthailand_correct_field_bottomalt/images/train
+  - ../spldata/datasets/thai_robots_false_balls_bottom  alt/images/train
 val:
-  - ../spldata/datasets/spl-xyolo_bottom/images/val
-  - ../spldata/datasets/natural-light_bottom/images/val
-  - ../spldata/datasets/naodevils_bottom/images/val
-  - ../spldata/datasets/logs_220603_rgb_bottom/images/val
-  - ../spldata/datasets/logs_220623_rgb_bottom/images/val
-  - ../spldata/datasets/naodevils_upper_2000_3000_bottom/images/val
+  - ../spldata/datasets/larg_spl19_rgb_bottomalt/images/val
+  # - ../spldata/datasets/xyolo_bottomalt/images/val
+  - ../spldata/datasets/natural-light_bottomalt/images/val
+  - ../spldata/datasets/logs_220603_rgb_bottomalt/images/val
+  - ../spldata/datasets/logs_220623_rgb_bottomalt/images/val
+  - ../spldata/datasets/naodevils_bottomalt/images/val
+  # - ../spldata/datasets/naodevils_upper_2000_3000_bottomalt/images/val
+  # - ../spldata/datasets/naodevils_upper_3000_4000_bottomalt/images/val
+  # - ../spldata/datasets/naodevils_upper_6000_7000_bottomalt/images/val
+  # - ../spldata/datasets/naodevils_upper_8000_9000_bottomalt/images/val
+  - ../spldata/datasets/vision_22_07_01-01_57_38_rgb_bottomalt/images/val
+  - ../spldata/datasets/vision_22_07_14_rgb_bottomalt/images/val
+  - ../spldata/datasets/vision_22_07_11_pre_padthai_rgb_bottomalt/images/val
+  - ../spldata/datasets/vision_padthailand_correct_field_bottomalt/images/val
+  - ../spldata/datasets/thai_robots_false_balls_bottomalt/images/val
+
 names: ["ball", "cross"]

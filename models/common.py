@@ -17,6 +17,7 @@ import pandas as pd
 import requests
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import yaml
 from PIL import Image
 from torch.cuda import amp
@@ -301,6 +302,48 @@ class Concat(nn.Module):
 
     def forward(self, x):
         return torch.cat(x, self.d)
+
+
+class RGB2YUYV(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        b = [0.0625, 0.5, 0.0625, 0.5]
+        self.b = nn.Parameter(torch.FloatTensor(b), requires_grad=False)
+        W = np.zeros((3, 3, 1, 1), np.float32)
+        W = np.zeros((4, 3, 1, 2), np.float32)
+        W[..., 0, 0] = np.array([
+                [0.257, 0.504, 0.098],
+                [-0.074, -0.146, 0.22],
+                [0.0, 0.0, 0.0],
+                [0.22, -0.184, -.036]
+        ])
+        W[..., 0, 1] = np.array([
+                [0.0, 0.0, 0.0],
+                [-0.074, -0.146, 0.22],
+                [0.257, 0.504, 0.098],
+                [0.22, -0.184, -.036]
+        ])
+        self.W = nn.Parameter(torch.FloatTensor(W), requires_grad=False)
+
+    def forward(self, x):
+        return 255 * F.conv2d(x, self.W, self.b, stride=(1, 2), padding=(0, 0))
+
+
+class RGB2YUV(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        b = [0.0625, 0.5, 0.5]
+        self.b = nn.Parameter(torch.FloatTensor(b), requires_grad=False)
+        W = np.zeros((3, 3, 1, 1), np.float32)
+        W[..., 0, 0] = np.array([
+                [0.299, 0.584, 0.114],
+                [-0.148, -0.292, 0.44],
+                [0.6, -0.5, -0.10]
+        ])
+        self.W = nn.Parameter(torch.FloatTensor(W), requires_grad=False)
+
+    def forward(self, x):
+        return 255 * F.conv2d(x, self.W, self.b, stride=(1, 2), padding=(0, 0))
 
 
 class DetectMultiBackend(nn.Module):

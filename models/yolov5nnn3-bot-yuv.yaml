@@ -1,0 +1,39 @@
+# YOLOv5 🚀 by Ultralytics, GPL-3.0 license
+
+# Parameters
+nc: 2  # number of classes
+depth_multiple: 1.0  # model depth multiple
+width_multiple: 1.0  # layer channel multiple
+anchors:
+  - [6,8, 24,32, 42,56]   # P4/16  12x16
+
+yuv: true
+
+# YOLOv5 v6.0 backbone
+backbone:
+  # [from, number, module, args]
+  [
+    [-1, 1, Conv, [8, 3, 1]], # [filters, kernel, stride, padding, groups]
+    [-1, 1, nn.MaxPool2d, [2, 2, 0]],
+    [-1, 1, Conv, [16, 3, 1]],  # 
+    [-1, 1, nn.MaxPool2d, [2, 2, 0]],
+    [-1, 1, Conv, [24, 3, 1]],  # 
+    [-1, 1, C3, [24]],
+    [-1, 1, nn.MaxPool2d, [2, 2, 0]],
+    [-1, 1, Conv, [32, 3, 1]],  # 
+    [-1, 1, C3, [32]],
+    [-1, 1, nn.MaxPool2d, [2, 2, 0]],
+    [-1, 1, Conv, [32, 3, 1]],  # 
+    [-1, 1, SPPF, [32, 3]],  # 
+  ]
+
+# YOLOv5 v6.0 head
+head:
+  [
+    [-1, 1, C3, [16, False]],
+    [[-1, -], 1, Concat, [1]],
+    [-1, 1, nn.Upsample, [None, [1, 2], 'bilinear']],
+    [-1, 1, C3, [24, False]],
+    [-1, 1, Conv, [16, 3, 1]],
+    [[-1], 1, Detect, [nc, anchors]],  
+  ]

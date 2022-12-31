@@ -57,6 +57,7 @@ import pandas as pd
 import torch
 import yaml
 from torch.utils.mobile_optimizer import optimize_for_mobile
+from models.common import RGB2YUV, RGB2YUYV
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[0]  # YOLOv5 root directory
@@ -304,9 +305,11 @@ def export_saved_model(model,
         
         imgsz_ = deepcopy(imgsz)
     
-        if yuyv:
+        if isinstance(model.model[0], RGB2YUYV):
             imgsz_[1] = imgsz[1] // 2
             ch = 4
+        elif isinstance(model.model[0], RGB2YUV):
+            imgsz_[1] = imgsz[1] // 2
 
         im = tf.zeros((batch_size, *imgsz_, ch))  # BHWC order for TensorFlow
 
@@ -500,6 +503,7 @@ def run(
         assert device.type != 'cpu' or coreml or xml, '--half only compatible with GPU export, i.e. use --device 0'
         assert not dynamic, '--half not compatible with --dynamic, i.e. use either --half or --dynamic but not both'
     model = attempt_load(weights, device=device, inplace=True, fuse=True)  # load FP32 model
+
     nc, names = model.nc, model.names  # number of classes, class names
 
     # Checks
@@ -582,7 +586,7 @@ def parse_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data', type=str, default=ROOT / 'data/coco128.yaml', help='dataset.yaml path')
     parser.add_argument('--weights', nargs='+', type=str, default=ROOT / 'yolov5s.pt', help='model.pt path(s)')
-    parser.add_argument('--imgsz', '--img', '--img-size', nargs='+', type=int, default=[640, 640], help='image (h, w)')
+    parser.add_argument('--imgsz', '--img', '--img-size', nargs='+', type=int, default=[192, 256], help='image (h, w)')
     parser.add_argument('--batch-size', type=int, default=1, help='batch size')
     parser.add_argument('--device', default='cpu', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     parser.add_argument('--half', action='store_true', help='FP16 half-precision export')
